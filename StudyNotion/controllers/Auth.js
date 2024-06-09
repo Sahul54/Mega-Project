@@ -232,3 +232,8 @@ exports.login = async (req, res) =>{
 }
 
 // change password
+
+exports.changePassword = async (req, res) =>{
+    // gat data from reqest ki body
+   
+}
