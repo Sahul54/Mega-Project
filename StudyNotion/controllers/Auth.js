@@ -231,9 +231,41 @@ exports.login = async (req, res) =>{
     }
 }
 
-// change password
-
+// HW: change password
 exports.changePassword = async (req, res) =>{
-    // gat data from reqest ki body
-   
+        // gat data from reqest ki body
+        const { oldPassword, newPassword } = req.body;
+
+        try {
+            const user = await User.findById(req.userId);
+                if (!user) {
+                    return res.status(404).json({ 
+                        success: false,
+                        message: 'User not found',
+                    });
+                }
+
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ 
+                    message: 'Old password is incorrect' 
+                });
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            user.password = hashedPassword;
+            await user.save();
+
+            return res.json({ 
+                success: true,
+                message: 'Password changed successfully',
+            });
+        } 
+        catch (error) {
+            console.error(error);
+            res.status(500).json({ 
+                success: false,
+                message: 'Internal server error', 
+            });
+        }
 }
