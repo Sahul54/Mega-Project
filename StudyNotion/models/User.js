@@ -1,6 +1,6 @@
 const mongoose = reqiure("mongoose");
 
-const userSchema = new mongosoe.Schema({
+const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
