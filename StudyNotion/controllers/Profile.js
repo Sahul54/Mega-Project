@@ -64,7 +64,20 @@ exports.deleteAccount = async (req, res) => {
         // delete user
         await User.findByIdAndDelete({_id: id});
 
-        // HW : How can be scuddule a job to delete account //cron jon
+        // HW : How can be scuddule a job to delete account 
+        //cron jon--> npm install express mongoose node-cron  (install karna baki hai)
+        cron.schedule('0 0 * * *', async () => {
+            try {
+              // Calculate the date 5 days ago from now
+              const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+              
+              // Delete records older than 5 days
+              const result = await Record.deleteMany({ createdAt: { $lt: fiveDaysAgo } });
+              console.log(`Deleted ${result.deletedCount} records`);
+            } catch (error) {
+              console.error('Error deleting records:', error);
+            }
+          });
 
         // return response
         return res.status(200).json({
@@ -82,7 +95,6 @@ exports.deleteAccount = async (req, res) => {
 
 
 // Get all User details
-
 exports.getAllUserDetails = async (req, res) =>{
     try{
         // get id
