@@ -21,6 +21,7 @@ const OTPSchema = new mongosoe.Schema({
 // A fuction -> to send mail
 async function sendVerificationEmail(email, otp){
     try{
+        
         const mailResponse = awaitSender(email, "Verification from StudyNotation", otp);
         console.log(`Email sent Successfully: `, mailResponse);
     }

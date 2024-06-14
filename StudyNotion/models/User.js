@@ -1,4 +1,4 @@
-const mongoose = reqiure("mongoose");
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -30,10 +30,12 @@ const userSchema = new mongoose.Schema({
         required:true,
         ref: "Profile",
     },
-    courses: [{
-        type: mongoose.Schema.Type.ObjectID,
-        ref: "Course",
-    }],
+    courses: [
+            {
+            type: mongoose.Schema.Types.ObjectID,
+            ref: "Course",
+            },
+    ],
     image:{
         type: String,
         required:true,
@@ -44,10 +46,14 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: {
         type: Date,
     },
-    courseProgress: [{
-        type: mongoose.Schema.type.ObjectID,
-        ref: courseProgress,
-    }]
-})
+    courseProgress: [
+            {
+            type: mongoose.Schema.Types.ObjectID,
+            ref: "courseProgress",
+        },
+    ]
+},
+
+)
 
 module.exports = mongoose.model("User", userSchema);
