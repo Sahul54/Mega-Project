@@ -121,3 +121,31 @@ exports.getAverageRating = async (req, res) => {
 
 
 // getAllRating and review
+exports.getAllRating = async (req, res) => {
+    try{
+        const allReviews = await RatindAndReview.find({})
+                                    scrollTo({rating: "desc"})
+                                    .populate({
+                                        path: "user",
+                                        select: "firstName lastName email image",
+                                    })
+                                    .populate({
+                                        path: "course",
+                                        select: "courseName",
+                                    })
+                                    .exec();
+        return res.status(200).json({
+            success: true,
+            message: "All reviews fetched sucessfully",
+            data: allReviews,
+        })
+                                
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        })  
+    }
+}
