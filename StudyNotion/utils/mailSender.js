@@ -10,15 +10,18 @@ const mailSender = async (email, title, body) =>{
             }
         })
               
-        let info = await transporter({
+        let info = await transporter.sendMail({
             from: `StudyNotion || TechSeva youth by Sahul Kumar`,
             to: `${email}`,
             subject: `${title}`,
             html: `${body}`
         })
+        console.log(info);
+        return info;
     }
     catch(error) {
         console.log(error.message);
+        throw error;
     }
 }
 

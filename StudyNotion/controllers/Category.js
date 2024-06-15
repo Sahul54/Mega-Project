@@ -1,126 +1,124 @@
+const { Mongoose } = require("mongoose");
 const Category = require("../models/Category");
-const Course = require("../models/Course");
-
-//Create tag ka handler function
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max)
+  }
 
 exports.createCategory = async (req, res) => {
-    try{
-        // data fetch
-        const {name, description} = req.body;
+	try {
+		const { name, description } = req.body;
+		if (!name) {
+			return res
+				.status(400)
+				.json({ success: false, message: "All fields are required" });
+		}
+		const CategorysDetails = await Category.create({
+			name: name,
+			description: description,
+		});
+		console.log(CategorysDetails);
+		return res.status(200).json({
+			success: true,
+			message: "Categorys Created Successfully",
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: true,
+			message: error.message,
+		});
+	}
+};
 
-        // validation
-        if(!name || !description){
-            return res.ststus(400).json({
-                success: false,
-                message: "All fiels are required",
-            });
-        }
+exports.showAllCategories = async (req, res) => {
+	try {
+        console.log("INSIDE SHOW ALL CATEGORIES");
+		const allCategorys = await Category.find({});
+		res.status(200).json({
+			success: true,
+			data: allCategorys,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	}
+};
 
-        // create entry in db
-        const CategoryDetails = await Category.create({
-            name: name,
-            description: description,
-        });
-        console.log(CategoryDetails);
+//categoryPageDetails 
 
-        // return response
-        return res.ststus(200).json({
-            success: true,
-            message: "Tag created successfully"
+exports.categoryPageDetails = async (req, res) => {
+    try {
+      const { categoryId } = req.body
+      console.log("PRINTING CATEGORY ID: ", categoryId);
+      // Get courses for the specified category
+      const selectedCategory = await Category.findById(categoryId)
+        .populate({
+          path: "courses",
+          match: { status: "Published" },
+          populate: "ratingAndReviews",
         })
-
-    }
-    catch(error){
-        return res.ststus(500).json({
-            success: false,
-            message: error.message,
-        });
-    }
-}
-
-// get all tags handler function
-
-exports.showAllCategory = async (req, res) => {
-    try{
-        const allCategory = await Tag.find({}, {name: true, description: true});
-
-        // response send
-        return res.ststus(200).json({
-            success:true,
-            message: "All tag retured successfully",
-            allCategory,
+        .exec()
+  
+      //console.log("SELECTED COURSE", selectedCategory)
+      // Handle the case when the category is not found
+      if (!selectedCategory) {
+        console.log("Category not found.")
+        return res
+          .status(404)
+          .json({ success: false, message: "Category not found" })
+      }
+      // Handle the case when there are no courses
+      if (selectedCategory.courses.length === 0) {
+        console.log("No courses found for the selected category.")
+        return res.status(404).json({
+          success: false,
+          message: "No courses found for the selected category.",
         })
-    }
-    catch(error){
-        return res.ststus(500).json({
-            success: false,
-            message: error.message,
-        });
-    }
-}
-
-// category page details
-exports.CategoryPageDetails = async (req, res) => {
-    try{
-        // get category id
-        const {categoryId} = req.body;
-
-        // get course for specified category id
-        const selectedCategory = await Category.findById(categoryId)
-                                                .populate("courses")
-                                                .exec();
-
-        // validation
-        if(!selectedCategory) {
-            return res.status(404).json({
-                success:false,
-                message: "Data not found",
-            });
-        }
-
-        // grt course for different for course
-        const differentCategories = await Category.find({
-                                        _id: {$ne: categoryId},
-                                    })
-                                    .populate("courses")
-                                    .exec();
-        
-        // get top selling courses
-        exports.getTopSellingCourses = async (req, res) => {
-            try {
-                // Fetch top selling courses, sorted by sales in descending order
-                const topSellingCourses = await Course.find().sort({
-                                                 sales: -1 
-                                                }).limit(10);
-                
-                res.json({
-                    success: true,
-                    data: topSellingCourses
-                });
-            } catch (error) {
-                console.error("Error fetching top selling courses: ", error);
-                res.status(500).json({
-                    success: false,
-                    message: "Failed to fetch top selling courses"
-                });
-            }
-        }
-
-        // return Course
-        return res.status(200).json({
-            success: true,
-            data: {
-                selectedCategory,
-                differentCategories,
-            }
+      }
+  
+      // Get courses for other categories
+      const categoriesExceptSelected = await Category.find({
+        _id: { $ne: categoryId },
+      })
+      let differentCategory = await Category.findOne(
+        categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
+          ._id
+      )
+        .populate({
+          path: "courses",
+          match: { status: "Published" },
         })
-    }
-    catch(error){
-        console.log(error);
-        return res.ststus(500).json({
-            success: false,
-            message: error.message,
+        .exec()
+        //console.log("Different COURSE", differentCategory)
+      // Get top-selling courses across all categories
+      const allCategories = await Category.find()
+        .populate({
+          path: "courses",
+          match: { status: "Published" },
+          populate: {
+            path: "instructor",
+        },
         })
-
+        .exec()
+      const allCourses = allCategories.flatMap((category) => category.courses)
+      const mostSellingCourses = allCourses
+        .sort((a, b) => b.sold - a.sold)
+        .slice(0, 10)
+       // console.log("mostSellingCourses COURSE", mostSellingCourses)
+      res.status(200).json({
+        success: true,
+        data: {
+          selectedCategory,
+          differentCategory,
+          mostSellingCourses,
+        },
+      })
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      })
     }
-}
+  }

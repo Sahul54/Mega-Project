@@ -10,7 +10,7 @@ exports.cloudinaryConnect = () => {
 		});
 	} catch (error) {
 		console.log(error);
-        return resizeBy.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Cloudinary connection falied"
         })
