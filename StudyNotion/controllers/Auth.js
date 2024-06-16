@@ -7,6 +7,7 @@ const mailSender = require("../utils/mailSender")
 const { passwordUpdated } = require("../mail/templates/passwordUpdate")
 const Profile = require("../models/Profile")
 require("dotenv").config()
+// const { RandomAvatar } = require("react-random-avatars")
 
 // Signup Controller for Registering USers
 
@@ -95,7 +96,7 @@ exports.signup = async (req, res) => {
       accountType: accountType,
       approved: approved,
       additionalDetails: profileDetails._id,
-      image: "",
+      image: " ",
     })
 
     return res.status(200).json({
